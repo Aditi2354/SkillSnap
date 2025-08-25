@@ -1,0 +1,171 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+/**
+ * ========== Your app models ==========
+ */
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  createdAt DateTime @default(now())
+
+  chats    ChatSession[] @relation("UserChats")
+  feedback Feedback[]    @relation("UserFeedback")
+  profile  Profile?
+  roadmaps Roadmap[]
+
+  // (optional) NextAuth relations — safe even if you're on JWT sessions
+  accounts Account[]
+  sessions Session[]
+  Progress Progress[]
+}
+
+model Profile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  currentRole String?
+  targetRole  String?
+  // SQLite: primitive list (String[]) not supported -> use Json
+  interests   Json?
+  level       String?
+  resumeUrl   String?
+
+  user   User    @relation(fields: [userId], references: [id])
+  skills Skill[]
+}
+
+model Skill {
+  id        String @id @default(cuid())
+  profileId String
+  name      String
+  level     Int
+
+  profile Profile @relation(fields: [profileId], references: [id])
+}
+
+model Roadmap {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  targetRole  String
+  durationWks Int
+  createdAt   DateTime @default(now())
+
+  modules Module[]
+  user    User     @relation(fields: [userId], references: [id])
+}
+
+model Module {
+  id          String  @id @default(cuid())
+  roadmapId   String
+  title       String
+  weekIndex   Int
+  description String
+  checkpoint  String?
+
+  roadmap    Roadmap    @relation(fields: [roadmapId], references: [id])
+  resources  Resource[]
+  progresses Progress[]
+}
+
+model Resource {
+  id       String @id @default(cuid())
+  moduleId String
+  kind     String
+  title    String
+  url      String
+
+  module Module @relation(fields: [moduleId], references: [id])
+}
+
+model Progress {
+  id        String   @id @default(cuid())
+  userId    String
+  moduleId  String
+  done      Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, moduleId], name: "userId_moduleId")
+}
+
+model ChatSession {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  createdAt DateTime @default(now())
+
+  user     User      @relation("UserChats", fields: [userId], references: [id])
+  messages Message[] @relation("SessionMessages")
+}
+
+model Message {
+  id            String   @id @default(cuid())
+  chatSessionId String
+  role          String
+  content       String
+  createdAt     DateTime @default(now())
+
+  chatSession ChatSession @relation("SessionMessages", fields: [chatSessionId], references: [id])
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  user User @relation("UserFeedback", fields: [userId], references: [id])
+}
+
+/**
+ * ========== NextAuth models (SQLite‑friendly) ==========
+ */
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  // SQLite: remove @db.Text — use plain String?
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
