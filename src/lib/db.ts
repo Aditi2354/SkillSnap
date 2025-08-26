@@ -1,16 +1,21 @@
 // src/lib/db.ts
+// src/lib/db.ts
 import { PrismaClient } from "@prisma/client";
 
-declare global {
-  // allow global `var` in dev to avoid multiple clients
-  // eslint-disable-next-line no-var
-  var prisma: PrismaClient | undefined;
-}
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
 
+// Single Prisma instance (dev hot-reload safe)
 export const prisma =
-  global.prisma ??
+  globalForPrisma.prisma ??
   new PrismaClient({
-    log: ["error", "warn"], // add "query" if you want verbose logs
+    log: process.env.NODE_ENV === "production" ? [] : ["query", "error", "warn"],
   });
 
-if (process.env.NODE_ENV !== "production") global.prisma = prisma;
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
+// ✅ Compatibility export: some files import { db } from "@/lib/db"
+export const db = prisma;
+
+export default prisma;
