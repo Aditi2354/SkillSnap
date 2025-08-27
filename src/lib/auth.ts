@@ -4,7 +4,7 @@ import NextAuth, { type NextAuthOptions, getServerSession } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
 export const authOptions: NextAuthOptions = {
-  // v4: no `trustHost`
+  // ❌ trustHost: true  (v4 me allowed nahi) — is line ko mat rakho
   session: { strategy: "jwt" },
   pages: { signIn: "/signin" },
 
@@ -32,5 +32,5 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-// helper for server components/actions
 export const auth = () => getServerSession(authOptions);
+
