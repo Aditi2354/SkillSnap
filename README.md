@@ -42,6 +42,21 @@ Authentication • Database schema design • API integration • AI-powered wor
 - **AI API:** OpenRouter API (ChatGPT-style responses)
 - **Hosting:** [Render](https://render.com/)
 
+## 📸 Screenshots
+
+### 🏠 Home Page  
+![Home Page](./AditiSkillsnapHomePage.png)
+
+### 📊 Dashboard  
+![Dashboard](./AditiSkillsnapdashboard.png)
+
+### 🗺️ Roadmap Generator  
+![Roadmap](./AditiSkillsnapRoadmap.png)
+
+### 💬 Mentor Chat  
+![Chat](./AditiSkillsnapchat.png)
+
+
 
 ## 📂 Project Structure
 SkillSnap/
